@@ -20,12 +20,17 @@ import BlurText from "./blur-text"
 import SplitBlurText from "./split-blur-text"
 import TypewriterText from "./typewriter-text" // Import the new component
 
+const BACKEND_URL = "https://chatbot-backend-2-k0iv.onrender.com";
+
 export default function RAGBotLanding() {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const [question, setQuestion] = useState("")
   const [hoveredFeature, setHoveredFeature] = useState<number | null>(null)
-
   const [selectedProvider, setSelectedProvider] = useState<string>("Gemini")
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [answer, setAnswer] = useState<string>("")
+  const [uploading, setUploading] = useState(false)
+  const [asking, setAsking] = useState(false)
 
   const handleProviderChange = (provider: string) => {
     setSelectedProvider(provider)
@@ -67,6 +72,61 @@ export default function RAGBotLanding() {
     if (uploadSection) {
       uploadSection.scrollIntoView({ behavior: "smooth", block: "start" })
     }
+  }
+
+  // Upload PDF files to backend
+  const handleUpload = async () => {
+    if (selectedFiles.length === 0) {
+      alert("Please select files to upload.")
+      return
+    }
+    setUploading(true)
+    const formData = new FormData()
+    selectedFiles.forEach(file => formData.append("files", file))
+    try {
+      const res = await fetch(`${BACKEND_URL}/upload`, {
+        method: "POST",
+        body: formData,
+      })
+      const data = await res.json()
+      if (data.session_id) {
+        setSessionId(data.session_id)
+        alert("Upload successful! You can now ask questions.")
+      } else {
+        alert("Upload failed. Please try again.")
+      }
+    } catch (err) {
+      alert("Error uploading files.")
+    }
+    setUploading(false)
+    setSelectedFiles([])
+  }
+
+  // Ask a question to backend
+  const handleAsk = async () => {
+    if (!sessionId) {
+      alert("Please upload PDF(s) first.")
+      return
+    }
+    if (!question.trim()) {
+      alert("Please enter a question.")
+      return
+    }
+    setAsking(true)
+    const askForm = new FormData()
+    askForm.append("session_id", sessionId)
+    askForm.append("question", question)
+    try {
+      const res = await fetch(`${BACKEND_URL}/ask`, {
+        method: "POST",
+        body: askForm,
+      })
+      const data = await res.json()
+      setAnswer(data.answer || "No answer returned.")
+    } catch (err) {
+      setAnswer("Error getting answer from backend.")
+    }
+    setAsking(false)
   }
 
   return (
@@ -299,30 +359,19 @@ export default function RAGBotLanding() {
                             boxShadow: "0 0 20px rgba(56, 178, 172, 0.2)",
                           }}
                           onClick={() => document.getElementById("file-upload")?.click()}
+                          disabled={uploading}
                         >
-                          Choose Files
+                          {uploading ? "Uploading..." : "Choose Files"}
                         </Button>
                         <Button
                           className="bg-gradient-to-r from-teal-500 to-emerald-500 text-white hover:scale-105 transition-all duration-300 rounded-full px-6"
                           style={{
                             boxShadow: "0 0 20px rgba(56, 178, 172, 0.4)",
                           }}
-                          onClick={() => {
-                            if (selectedFiles.length > 0) {
-                              console.log(
-                                "Uploading files:",
-                                selectedFiles.map((f) => f.name),
-                              )
-                              // In a real app, you would send these files to a server
-                              alert(`Uploading ${selectedFiles.length} file(s)! Check console for details.`)
-                              setSelectedFiles([]) // Clear selected files after "upload"
-                            } else {
-                              alert("Please select files to upload.")
-                            }
-                          }}
-                          disabled={selectedFiles.length === 0}
+                          onClick={handleUpload}
+                          disabled={uploading || selectedFiles.length === 0}
                         >
-                          Upload
+                          {uploading ? "Uploading..." : "Upload"}
                         </Button>
                       </div>
                       {selectedFiles.length > 0 && (
@@ -357,6 +406,12 @@ export default function RAGBotLanding() {
                       <MessageSquare className="w-16 h-16 mx-auto mb-4 text-teal-400/50" />
                       <p>Your conversation will appear here...</p>
                     </div>
+                    {answer && (
+                      <div className="mt-6 p-4 bg-slate-700/50 rounded-lg border border-teal-400/20">
+                        <h4 className="text-lg font-semibold text-white mb-2">Answer:</h4>
+                        <p className="text-gray-300 leading-relaxed">{answer}</p>
+                      </div>
+                    )}
                   </div>
 
                   {/* Enhanced Search Input with Model Selection */}
@@ -402,8 +457,10 @@ export default function RAGBotLanding() {
                         style={{
                           boxShadow: "0 0 20px rgba(56, 178, 172, 0.4)",
                         }}
+                        onClick={handleAsk}
+                        disabled={asking || !sessionId || !question.trim()}
                       >
-                        Ask
+                        {asking ? "Asking..." : "Ask"}
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>
                     </div>
@@ -489,64 +546,4 @@ export default function RAGBotLanding() {
                             ease: "easeInOut", // Smooth easing
                           }}
                           style={{
-                            boxShadow: hoveredFeature === index ? `0 0 30px ${feature.glowColor}` : "none",
-                          }}
-                        >
-                          <feature.icon className="w-8 h-8 text-white" />
-                        </motion.div>
-
-                        <motion.h3
-                          className="text-xl font-semibold text-white mb-3 group-hover:bg-gradient-to-r group-hover:bg-clip-text transition-all duration-300"
-                          style={{
-                            backgroundImage:
-                              hoveredFeature === index
-                                ? `linear-gradient(to right, ${feature.color.split(" ")[1]}, ${feature.color.split(" ")[3]})`
-                                : undefined,
-                          }}
-                        >
-                          {feature.title}
-                        </motion.h3>
-
-                        <p className="text-gray-300 leading-relaxed group-hover:text-white transition-colors duration-300">
-                          {feature.description}
-                        </p>
-                      </div>
-
-                      {/* Floating particles inside card */}
-                      {hoveredFeature === index && (
-                        <>
-                          {[...Array(6)].map((_, i) => (
-                            <motion.div
-                              key={i}
-                              className="absolute w-1 h-1 rounded-full"
-                              style={{
-                                background: `linear-gradient(to right, ${feature.color.split(" ")[1]}, ${feature.color.split(" ")[3]})`,
-                                left: `${20 + i * 15}%`,
-                                top: `${30 + i * 10}%`,
-                              }}
-                              animate={{
-                                y: [-10, 10, -10],
-                                opacity: [0.3, 1, 0.3],
-                                scale: [0.5, 1, 0.5],
-                              }}
-                              transition={{
-                                duration: 2 + i * 0.3,
-                                repeat: Number.POSITIVE_INFINITY,
-                                ease: "easeInOut",
-                                delay: i * 0.2,
-                              }}
-                            />
-                          ))}
-                        </>
-                      )}
-                    </Card>
-                  </motion.div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </motion.section>
-      </div>
-    </div>
-  )
-}
+                            boxShadow: hoveredFeature === index ? `0 0 30px ${feature.glowColor}`
