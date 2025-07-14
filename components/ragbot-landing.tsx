@@ -546,4 +546,22 @@ export default function RAGBotLanding() {
                             ease: "easeInOut", // Smooth easing
                           }}
                           style={{
-                            boxShadow: hoveredFeature === index ? `0 0 30px ${feature.glowColor}`
+                            boxShadow: hoveredFeature === index ? `0 0 30px ${feature.glowColor}` : "none",
+                          }}
+                        >
+                          <feature.icon className="w-8 h-8 mx-auto mb-2 text-white" />
+                          <h5 className="text-lg font-semibold text-white mb-1">{feature.title}</h5>
+                          <p className="text-gray-300 text-sm">{feature.description}</p>
+                        </motion.div>
+                      </div>
+                    </Card>
+                  </motion.div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </motion.section>
+      </div>
+    </div>
+  );
+}
