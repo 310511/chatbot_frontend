@@ -422,12 +422,12 @@ export default function RAGBotLanding() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="outline"
-                            className="bg-gradient-to-r from-teal-500/20 to-emerald-500/20 border border-teal-400/30 text-white hover:bg-teal-500/30 rounded-full px-4 py-2 text-sm"
+                            className="bg-gradient-to-r from-indigo-500 to-purple-500 border border-indigo-600 text-white hover:bg-purple-600 rounded-full px-4 py-2 text-sm shadow-lg"
                           >
                             {selectedProvider} <ChevronDown className="ml-2 h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent className="bg-slate-800/90 border border-teal-400/20 text-white">
+                        <DropdownMenuContent className="bg-gradient-to-br from-indigo-700 to-purple-700 border border-indigo-500 text-white shadow-xl">
                           <DropdownMenuLabel>Select Provider</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleProviderChange("Gemini")}>Gemini</DropdownMenuItem>
@@ -535,7 +535,7 @@ export default function RAGBotLanding() {
                     >
                       <div className="text-center relative z-10">
                         <motion.div
-                          className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300`}
+                          className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300`}
                           animate={{
                             scale: [1, 1.1, 1], // Breathe in-out scale
                             opacity: [1, 0.8, 1], // Breathe in-out opacity
@@ -549,10 +549,10 @@ export default function RAGBotLanding() {
                             boxShadow: hoveredFeature === index ? `0 0 30px ${feature.glowColor}` : "none",
                           }}
                         >
-                          <feature.icon className="w-8 h-8 mx-auto mb-2 text-white" />
-                          <h5 className="text-lg font-semibold text-white mb-1">{feature.title}</h5>
-                          <p className="text-gray-300 text-sm">{feature.description}</p>
+                          <feature.icon className="w-8 h-8 mx-auto text-white" />
                         </motion.div>
+                        <h5 className="text-lg font-semibold text-white mb-2 mt-2">{feature.title}</h5>
+                        <p className="text-gray-300 text-sm leading-relaxed mt-1">{feature.description}</p>
                       </div>
                     </Card>
                   </motion.div>
